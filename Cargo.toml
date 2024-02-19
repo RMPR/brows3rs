@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 futures = "0.3.30"
 minio = "0.1.0"
+rust-s3 = "0.33.0"
 tokio = "1.36.0"
