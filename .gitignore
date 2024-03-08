@@ -1,1 +1,6 @@
 /target
+minio_test/bin
+minio_test/include
+minio_test/lib
+minio_test/lib64
+minio_test/pyvenv.cfg
