@@ -14,7 +14,7 @@ pub mod buckets {
             endpoint: "http://se-ci-storage.localdomain:9000".to_owned(),
         };
         let credentials = Credentials {
-            access_key: Some("you-know".to_owned()),
+            access_key: Some("you-know-it".to_owned()),
             secret_key: Some(String::from(
                 "or-you-dont",
             )),
@@ -28,18 +28,11 @@ pub mod buckets {
 
         // 4) List bucket content
         println!("=== List bucket content ===");
-        let results = bucket.list("success/master/sdk/commit/".to_string(), Some("/".to_string())).await?;
-        for result in results {
-            for item in result.contents {
-                println!("key: {}", item.key);
-            }
+        let results = bucket.head_object("/").await?;
+        let objects = bucket.list("".to_owned(), Some("/".to_owned())).await?;
+        for object in objects {
+            println!("{:?}", object.common_prefixes.unwrap());
         }
-
-        let file_to_download = "success/master/sdk/commit/2023-12-19T22:47:23/22658563/windows/Installers/ZividSetup_2.12.0-pre-alpha-1+22658563-1-preview.exe";
-        // let file_to_download = "ZividSetup_2.12.0-pre-alpha-1+22658563-1-preview.exe";
-        let response_data = bucket.get_object(file_to_download).await?;
-        assert_eq!(response_data.status_code(), 200);
-
         Ok(())
     }
 }
