@@ -1,12 +1,12 @@
-from minio import Minio, Object, error
-
+import minio
+import os
 
 def _main():
     bucket_name = "se-ci-artifacts"
-    minio = Minio(
-        "se-ci-storage.localdomain:9000",
-        access_key="",
-        secret_key="",
+    minio = minio(
+        endpoint=os.environ.get("S3_HOSTNAME"),
+        access_key=os.environ.get("S3_ACCESSKEY"),
+        secret_key=os.environ.get("S3_SECRETKEY"),
         secure=False,
     )
     assert minio.bucket_exists(bucket_name)

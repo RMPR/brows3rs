@@ -1,8 +1,10 @@
 use std::{error::Error, str};
 
-use brows3rs::buckets::sync_list_objects;
+use crate::brows3r::buckets::list_objects;
+
+pub mod brows3r;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    sync_list_objects();
+    list_objects().await
 }
