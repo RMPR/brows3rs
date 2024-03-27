@@ -6,20 +6,24 @@ use s3::region::Region;
 
 pub async fn list_objects() -> Result<(), Box<dyn Error>> {
     // 1) Instantiate the bucket client
-    let bucket_name = "se-ci-artifacts";
+    // read the bucket name from the environment
+    let bucket_name = std::env::var("S3_BUCKET")?;
+    let access_key = std::env::var("S3_ACCESSKEY")?;
+    let secret_key = std::env::var("S3_SECRETKEY")?;
     let region = Region::Custom {
         region: "".to_owned(),
         endpoint: "http://se-ci-storage.localdomain:9000".to_owned(),
     };
     let credentials = Credentials {
-        access_key: Some("you-know-it".to_owned()),
-        secret_key: Some(String::from("or-you-dont")),
+        access_key: Some(access_key),
+        secret_key: Some(secret_key),
         security_token: None,
         session_token: None,
         expiration: None,
     };
 
-    let bucket = Bucket::new(bucket_name, region.clone(), credentials.clone())?.with_path_style();
+    let bucket =
+        Bucket::new(bucket_name.as_str(), region.clone(), credentials.clone())?.with_path_style();
 
     let mut num_objects = 0;
 
@@ -37,8 +41,4 @@ pub async fn list_objects() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-pub async fn sync_list_objects() {
-    list_objects().await.expect("Failed to list objects");
 }

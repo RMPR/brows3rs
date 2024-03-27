@@ -5,6 +5,18 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+path = "crates/browser/src/main.rs"
+name = "browser"
+
+[workspace]
+members = [
+    "crates/browser",
+    "crates/buckets",
+]
+
 [dependencies]
+buckets = { version = "0.1.0", path = "crates/buckets" }
+futures = "0.3.30"
 rust-s3 = "0.33.0"
-tokio = "1.36.0"
+tokio = {version = "1.36.0", features = ["rt-multi-thread", "macros"]}

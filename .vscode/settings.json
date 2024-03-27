@@ -1,6 +1,9 @@
 {
     "rust-analyzer.checkOnSave": false,
     "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./crates/buckets/Cargo.toml",
         "./Cargo.toml"
     ]
 }

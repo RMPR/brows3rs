@@ -1,8 +1,6 @@
-use std::{error::Error, str};
+use std::{error::Error};
 
-use crate::brows3r::buckets::list_objects;
-
-pub mod brows3r;
+use buckets::list_objects;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
