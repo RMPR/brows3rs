@@ -1,8 +1,27 @@
-use std::{error::Error};
+use clap::Parser;
+use std::error::Error;
 
-use buckets::list_objects;
+use buckets::{find_artifacts_path, list_objects};
+
+#[derive(Parser, Debug)]
+#[command(version, about = "Retrieve the artifacts path from the commit hash", long_about = None)]
+struct Args {
+    #[clap(short, long)]
+    release: String,
+
+    #[clap(short, long)]
+    commit_hash: String,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    list_objects().await
+    let args = Args::parse();
+    let release = args.release;
+    let artifact_path = find_artifacts_path(
+        format!("success/release/release-sdk-{}/sdk/commit/", release).as_str(),
+        args.commit_hash.as_str(),
+    )
+    .await?;
+    println!("{}", artifact_path);
+    Ok(())
 }
