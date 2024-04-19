@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::error::Error;
 
-use buckets::{find_artifacts_path, list_objects};
+use buckets::find_artifacts_path;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Retrieve the artifacts path from the commit hash", long_about = None)]
