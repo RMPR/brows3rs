@@ -5,7 +5,7 @@ use s3::creds::Credentials;
 use s3::region::Region;
 use s3::serde_types::ListBucketResult;
 
-pub async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
+fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
     let bucket_name = std::env::var("S3_BUCKET")?;
     let access_key = std::env::var("S3_ACCESSKEY")?;
     let secret_key = std::env::var("S3_SECRETKEY")?;
@@ -21,9 +21,13 @@ pub async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn
         session_token: None,
         expiration: None,
     };
-
     let bucket =
         Bucket::new(bucket_name.as_str(), region.clone(), credentials.clone())?.with_path_style();
+    Ok(bucket)
+}
+
+pub async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
+    let bucket = get_bucket()?;
     let objects = bucket
         .list(String::from(prefix), Some("/".to_owned()))
         .await?;
