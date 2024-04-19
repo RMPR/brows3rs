@@ -4,7 +4,7 @@ Implementation in 🦀 of a simple web interface to browse a minio bucket.
 
 ## Tasks
 
-22 March 2024
-- Organize code in lib/, src/ and test/ structure
-- Use environment variables for minio access keys
-- Implement a CLI tool to get full path to artifacts given a commit hash id
+19 April 2024
+- Refactor function `find_artifacts_path` to reduce complexity
+- Start the work on web interface
+- Given a link to artifacts, download all artifacts (similar to wget)
