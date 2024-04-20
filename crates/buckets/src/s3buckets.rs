@@ -34,36 +34,48 @@ pub async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn
     return Ok(objects);
 }
 
-pub async fn find_artifacts_path(
+async fn find_commit_hash_in(
+    timestamp_folder: &str,
+    commit_hash: &str,
+) -> Result<Option<String>, Box<dyn Error>> {
+    let commit_folders = list_objects(timestamp_folder).await?;
+    for commit_folder in commit_folders {
+        match commit_folder.common_prefixes {
+            None => continue,
+            Some(common_prefixes) => {
+                for commit in common_prefixes {
+                    let commit_hash_short = commit.prefix.rsplit("/").nth(1).unwrap();
+                    if commit_hash.contains(commit_hash_short) {
+                        println!("Aha found it: {:?}", commit.prefix);
+                        return Ok(Some(commit.prefix));
+                    }
+                    if commit_hash_short.contains(commit_hash) {
+                        println!("Did you mean --commit-hash {:?}?", commit_hash);
+                        return Err(format!("Found one match {}", commit.prefix).into());
+                    }
+                }
+            }
+        }
+    }
+    return Ok(None);
+}
+
+pub async fn find_artifact_with_commit_hash(
     prefix: &str,
     commit_hash: &str,
 ) -> Result<String, Box<dyn Error>> {
     let folders_under_prefix = list_objects(prefix).await?;
-    for artifact in folders_under_prefix {
-        match artifact.common_prefixes {
+    for folder_under_prefix in folders_under_prefix {
+        match folder_under_prefix.common_prefixes {
             None => continue,
             Some(common_prefixes) => {
-                for time_stamp_folders in common_prefixes {
-                    let commit_folders = list_objects(time_stamp_folders.prefix.as_str()).await?;
-                    for commit_folder in commit_folders {
-                        match commit_folder.common_prefixes {
-                            None => continue,
-                            Some(common_prefixes) => {
-                                for commit in common_prefixes {
-                                    let commit_hash_short =
-                                        commit.prefix.rsplit("/").nth(1).unwrap();
-                                    if commit_hash.contains(commit_hash_short) {
-                                        println!("Aha found it: {:?}", commit.prefix);
-                                        return Ok(commit.prefix);
-                                    }
-                                    if commit_hash_short.contains(commit_hash) {
-                                        println!("Did you mean --commit-hash {:?}?", commit_hash);
-                                        return Err(
-                                            format!("Found first match {}", commit.prefix).into()
-                                        );
-                                    }
-                                }
-                            }
+                for timestamp_folder in common_prefixes {
+                    let found_commit_folder =
+                        find_commit_hash_in(timestamp_folder.prefix.as_str(), commit_hash).await?;
+                    match found_commit_folder {
+                        None => continue,
+                        Some(artifact_path) => {
+                            return Ok(artifact_path);
                         }
                     }
                 }
