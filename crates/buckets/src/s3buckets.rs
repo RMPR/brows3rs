@@ -46,12 +46,13 @@ async fn find_commit_hash_in(
                 for commit in common_prefixes {
                     let commit_hash_short = commit.prefix.rsplit("/").nth(1).unwrap();
                     if commit_hash.contains(commit_hash_short) {
-                        println!("Aha found it: {:?}", commit.prefix);
+                        println!("Found an exact match for: {}", commit_hash_short);
                         return Ok(Some(commit.prefix));
                     }
                     if commit_hash_short.contains(commit_hash) {
-                        println!("Did you mean --commit-hash {:?}?", commit_hash);
-                        return Err(format!("Found one match {}", commit.prefix).into());
+                        println!("Did you mean --commit-hash {}?", commit_hash);
+                        println!("Found one match {}", commit.prefix);
+                        return Err("Did not find an exact match".into());
                     }
                 }
             }
