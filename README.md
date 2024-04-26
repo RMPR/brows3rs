@@ -8,3 +8,4 @@ Implementation in 🦀 of a simple web interface to browse a minio bucket.
 - Refactor function `find_artifacts_path` to reduce complexity
 - Start the work on web interface
 - Given a link to artifacts, download all artifacts (similar to wget)
+- Add some unit tests
