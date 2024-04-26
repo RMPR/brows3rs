@@ -12,7 +12,7 @@ name = "browser"
 [workspace]
 members = [
     "crates/browser",
-    "crates/buckets",
+    "crates/buckets", "crates/downloader",
 ]
 
 [dependencies]

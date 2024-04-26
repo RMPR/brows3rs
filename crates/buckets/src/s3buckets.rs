@@ -5,6 +5,9 @@ use s3::creds::Credentials;
 use s3::region::Region;
 use s3::serde_types::ListBucketResult;
 
+use std::io::prelude::*;
+use std::fs::File;
+
 fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
     let bucket_name = std::env::var("S3_BUCKET")?;
     let access_key = std::env::var("S3_ACCESSKEY")?;
@@ -84,4 +87,17 @@ pub async fn find_artifact_with_commit_hash(
         }
     }
     Err(format!("Did not find any artifact with commit hash {}", commit_hash).into())
+}
+
+pub async fn download_artifact(
+    artifact_path: &str,
+    destination: &str,
+) -> Result<(), Box<dyn Error>> {
+    let bucket = get_bucket()?;
+    let response = bucket.get_object(artifact_path).await?;
+    assert_eq!(response.status_code(), 200);
+    let mut buffer = File::create(destination)?;
+    buffer.write_all(&response.as_slice())?;
+    println!("Downloaded artifact to {}", destination);
+    Ok(())
 }
