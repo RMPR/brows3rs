@@ -89,15 +89,62 @@ pub async fn find_artifact_with_commit_hash(
     Err(format!("Did not find any artifact with commit hash {}", commit_hash).into())
 }
 
-pub async fn download_artifact(
-    artifact_path: &str,
-    destination: &str,
+async fn download_artifact(
+    artifact_file: &str,
+    destination_folder: &str,
 ) -> Result<(), Box<dyn Error>> {
     let bucket = get_bucket()?;
-    let response = bucket.get_object(artifact_path).await?;
-    assert_eq!(response.status_code(), 200);
-    let mut buffer = File::create(destination)?;
+    let response = bucket.get_object(artifact_file).await?;
+    if (response.status_code() != 200)
+    {
+        return Err(format!("Failed to download artifact: {}", response.status_code()).into());
+    }
+    // TODO: Replace string concatenation with std::fs
+    let destination = format!("{}/{}", destination_folder, artifact_file.rsplit("/").nth(0).unwrap());
+    let mut buffer = File::create(&destination)?;
     buffer.write_all(&response.as_slice())?;
-    println!("Downloaded artifact to {}", destination);
+    println!("Downloaded artifact to {}", &destination);
+    Ok(())
+}
+
+// fn is_folder(object: &ListBucketResult) -> bool {
+//     object.key.ends_with("/")
+// }
+
+fn is_artifact_a_folder(artifact_path: &str) -> bool {
+    // TODO: This enforces that if downloading folder, it must end with "/"
+    // Update logic to support downloading folders without "/" at end
+    return artifact_path.ends_with("/");
+}
+
+// fn add_artifact_if_folder(
+//     artifact_path: &str,
+//     object: &ListBucketResult,
+//     artifact_paths: &mut Vec<String>,
+// ) 
+// {
+//     if is_folder(object) {
+//         artifact_paths.push(format!("{}/{}", artifact_path, object.key));
+//     }
+// }
+
+pub async fn download_artifacts(
+    artifact_path: &str,
+    destination_path: &str,
+) -> Result<(), Box<dyn Error>> {
+    if (!is_artifact_a_folder(artifact_path)) {
+        return download_artifact(artifact_path, destination_path).await;
+    }
+
+    // TODO: Implement logic to visit all folders
+
+    // let mut to_visit_folders = Vec<ListBucketResult>::new();
+
+    // // TODO: Check that having or not having "/" at end of artifact_path works
+    // let artifact_paths = list_objects(artifact_path).await?;
+    // for artifact_path in artifact_paths {
+    //     add_artifact_if_folder(artifact_path, &artifact_path, &mut to_visit_folders);
+    //     download_artifact(&artifact_path, destination_path).await?;
+    // }
     Ok(())
 }
