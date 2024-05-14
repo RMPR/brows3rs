@@ -9,7 +9,7 @@ struct Args {
     #[clap(short, long)]
     artifact_path: String,
 
-    #[clap(short, long, default_value = "./")]
+    #[clap(short, long, default_value = "artifacts")]
     destination_folder: String,
 }
 

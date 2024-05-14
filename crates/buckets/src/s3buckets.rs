@@ -7,6 +7,7 @@ use s3::serde_types::ListBucketResult;
 
 use std::io::prelude::*;
 use std::fs::File;
+use std::path::PathBuf;
 
 fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
     let bucket_name = std::env::var("S3_BUCKET").expect("Failed to get the environment variable S3_BUCKET");
@@ -91,7 +92,7 @@ pub async fn find_artifact_with_commit_hash(
 
 async fn download_artifact(
     artifact_file: &str,
-    destination_folder: &str,
+    destination_folder: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     let bucket = get_bucket()?;
     let response = bucket.get_object(artifact_file).await?;
@@ -100,7 +101,7 @@ async fn download_artifact(
         return Err(format!("Failed to download artifact: {}", response.status_code()).into());
     }
     // TODO: Replace string concatenation with std::fs
-    let destination = format!("{}/{}", destination_folder, artifact_file.rsplit("/").nth(0).unwrap());
+    let destination = format!("{}/{}", destination_folder.display().to_string(), artifact_file.rsplit("/").nth(0).unwrap());
     let mut buffer = File::create(&destination)?;
     buffer.write_all(&response.as_slice())?;
     println!("Downloaded artifact to {}", &destination);
@@ -132,19 +133,26 @@ pub async fn download_artifacts(
     artifact_path: &str,
     destination_path: &str,
 ) -> Result<(), Box<dyn Error>> {
-    if (!is_artifact_a_folder(artifact_path)) {
-        return download_artifact(artifact_path, destination_path).await;
+    let mut temporary_folder = std::env::temp_dir();
+    temporary_folder.push(destination_path);
+    if !is_artifact_a_folder(artifact_path) {
+        return download_artifact(artifact_path, &temporary_folder).await;
     }
 
     // TODO: Implement logic to visit all folders
 
-    // let mut to_visit_folders = Vec<ListBucketResult>::new();
+    // let mut folders_to_visit: Vec<ListBucketResult> = Vec::new();
 
     // // TODO: Check that having or not having "/" at end of artifact_path works
-    // let artifact_paths = list_objects(artifact_path).await?;
-    // for artifact_path in artifact_paths {
-    //     add_artifact_if_folder(artifact_path, &artifact_path, &mut to_visit_folders);
-    //     download_artifact(&artifact_path, destination_path).await?;
-    // }
+    let bucket_results = list_objects(artifact_path).await?;
+    // Create a directory, returns `io::Result<()>`
+    std::fs::create_dir(temporary_folder.as_path())?;
+    for bucket_result in bucket_results {
+        for artifact_object in bucket_result.contents {
+            // add_artifact_if_folder(artifact_path, &artifact_path, &mut to_visit_folders);
+            download_artifact(&artifact_object.key, &temporary_folder).await?;
+        }
+    }
+    // Implement the logic for recursive folder downloading
     Ok(())
 }
