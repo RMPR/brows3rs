@@ -9,10 +9,10 @@ use std::io::prelude::*;
 use std::fs::File;
 
 fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
-    let bucket_name = std::env::var("S3_BUCKET")?;
-    let access_key = std::env::var("S3_ACCESSKEY")?;
-    let secret_key = std::env::var("S3_SECRETKEY")?;
-    let hostname = std::env::var("S3_HOSTNAME")?;
+    let bucket_name = std::env::var("S3_BUCKET").expect("Failed to get the environment variable S3_BUCKET");
+    let access_key = std::env::var("S3_ACCESSKEY").expect("Failed to get the environment variable S3_ACCESSKEY");
+    let secret_key = std::env::var("S3_SECRETKEY").expect("Failed to get the environment variable S3_SECRETKEY");
+    let hostname = std::env::var("S3_HOSTNAME").expect("Failed to get the environment variable S3_HOSTNAME");
     let region = Region::Custom {
         region: "".to_owned(),
         endpoint: format!("http://{}", hostname),
@@ -95,7 +95,7 @@ async fn download_artifact(
 ) -> Result<(), Box<dyn Error>> {
     let bucket = get_bucket()?;
     let response = bucket.get_object(artifact_file).await?;
-    if (response.status_code() != 200)
+    if response.status_code() != 200
     {
         return Err(format!("Failed to download artifact: {}", response.status_code()).into());
     }
