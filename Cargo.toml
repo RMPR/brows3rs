@@ -9,10 +9,15 @@ edition = "2021"
 path = "crates/browser/src/main.rs"
 name = "browser"
 
+[[bin]]
+path = "crates/downloader/src/main.rs"
+name = "downloader"
+
 [workspace]
 members = [
     "crates/browser",
-    "crates/buckets", "crates/downloader",
+    "crates/buckets", 
+    "crates/downloader",
 ]
 
 [dependencies]
