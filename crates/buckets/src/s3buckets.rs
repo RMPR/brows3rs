@@ -5,15 +5,21 @@ use s3::creds::Credentials;
 use s3::region::Region;
 use s3::serde_types::ListBucketResult;
 
-use std::io::prelude::*;
 use std::fs::File;
-use std::path::PathBuf;
+use std::io::prelude::*;
+use std::path::{Path, PathBuf};
+
+use tokio::runtime::Runtime;
 
 fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
-    let bucket_name = std::env::var("S3_BUCKET").expect("Failed to get the environment variable S3_BUCKET");
-    let access_key = std::env::var("S3_ACCESSKEY").expect("Failed to get the environment variable S3_ACCESSKEY");
-    let secret_key = std::env::var("S3_SECRETKEY").expect("Failed to get the environment variable S3_SECRETKEY");
-    let hostname = std::env::var("S3_HOSTNAME").expect("Failed to get the environment variable S3_HOSTNAME");
+    let bucket_name =
+        std::env::var("S3_BUCKET").expect("Failed to get the environment variable S3_BUCKET");
+    let access_key =
+        std::env::var("S3_ACCESSKEY").expect("Failed to get the environment variable S3_ACCESSKEY");
+    let secret_key =
+        std::env::var("S3_SECRETKEY").expect("Failed to get the environment variable S3_SECRETKEY");
+    let hostname =
+        std::env::var("S3_HOSTNAME").expect("Failed to get the environment variable S3_HOSTNAME");
     let region = Region::Custom {
         region: "".to_owned(),
         endpoint: format!("http://{}", hostname),
@@ -36,6 +42,33 @@ pub async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn
         .list(String::from(prefix), Some("/".to_owned()))
         .await?;
     return Ok(objects);
+}
+
+fn find_and_append_objects(
+    prefix: &str,
+    mut output_objects: &mut Vec<ListBucketResult>,
+) -> Result<(), Box<dyn Error>> {
+    let objects_to_visit = Runtime::new().unwrap().block_on(list_objects(prefix))?;
+    for object in &objects_to_visit {
+        match &object.common_prefixes {
+            None => continue,
+            Some(common_prefixes) => {
+                for common_prefix in common_prefixes {
+                    find_and_append_objects(common_prefix.prefix.as_str(), &mut output_objects)?;
+                }
+            }
+        }
+    }
+    for object in objects_to_visit {
+        output_objects.push(object);
+    }
+    Ok(())
+}
+
+pub fn list_all_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
+    let mut objects: Vec<ListBucketResult> = Vec::new();
+    find_and_append_objects(prefix, &mut objects)?;
+    Ok(objects)
 }
 
 async fn find_commit_hash_in(
@@ -96,12 +129,15 @@ async fn download_artifact(
 ) -> Result<(), Box<dyn Error>> {
     let bucket = get_bucket()?;
     let response = bucket.get_object(artifact_file).await?;
-    if response.status_code() != 200
-    {
+    if response.status_code() != 200 {
         return Err(format!("Failed to download artifact: {}", response.status_code()).into());
     }
     // TODO: Replace string concatenation with std::fs
-    let destination = format!("{}/{}", destination_folder.display().to_string(), artifact_file.rsplit("/").nth(0).unwrap());
+    let destination = format!(
+        "{}/{}",
+        destination_folder.display().to_string(),
+        artifact_file.rsplit("/").nth(0).unwrap()
+    );
     let mut buffer = File::create(&destination)?;
     buffer.write_all(&response.as_slice())?;
     println!("Downloaded artifact to {}", &destination);
@@ -122,7 +158,7 @@ fn is_artifact_a_folder(artifact_path: &str) -> bool {
 //     artifact_path: &str,
 //     object: &ListBucketResult,
 //     artifact_paths: &mut Vec<String>,
-// ) 
+// )
 // {
 //     if is_folder(object) {
 //         artifact_paths.push(format!("{}/{}", artifact_path, object.key));
@@ -154,5 +190,35 @@ pub async fn download_artifacts(
         }
     }
     // Implement the logic for recursive folder downloading
+    Ok(())
+}
+
+pub fn download_artifacts_sync(
+    artifact_path: &Path,
+    destination_path: &str,
+) -> Result<(), Box<dyn Error>> {
+    let mut temporary_folder = std::env::temp_dir();
+    temporary_folder.push(destination_path);
+
+    let objects = list_all_objects(&artifact_path.display().to_string())?;
+    for object in objects {
+        match object.prefix {
+            None => continue,
+            Some(prefix) => {
+                println!("{:?}", prefix);
+                let object_prefix_path = Path::new(&prefix);
+                let artifact_folder = object_prefix_path.strip_prefix(artifact_path)?;
+                let folder_to_create = temporary_folder.join(artifact_folder);
+                std::fs::create_dir_all(&folder_to_create)?;
+                println!("Downloading to folder: {:?}", &folder_to_create);
+                for artifact_object in object.contents {
+                    println!("Downloading file: {:?}", artifact_object.key);
+                    Runtime::new()
+                        .unwrap()
+                        .block_on(download_artifact(&artifact_object.key, &folder_to_create))?;
+                }
+            }
+        }
+    }
     Ok(())
 }

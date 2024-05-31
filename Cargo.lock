@@ -208,6 +208,7 @@ version = "0.1.0"
 dependencies = [
  "futures",
  "rust-s3",
+ "tokio",
 ]
 
 [[package]]
