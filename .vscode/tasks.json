@@ -28,6 +28,34 @@
                 "reveal": "silent",
                 "panel": "dedicated"
             }
+        },
+        {
+            "label": "Check code",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "check"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Fix code",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "fix",
+                "--allow-dirty",
+                "--allow-staged"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
         }
     ]
 }
