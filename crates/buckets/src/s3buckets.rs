@@ -1,9 +1,11 @@
 use std::error::Error;
+use std::result;
 
 use s3::bucket::Bucket;
 use s3::creds::Credentials;
 use s3::region::Region;
 use s3::serde_types::ListBucketResult;
+use s3::serde_types::Object;
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -69,6 +71,105 @@ pub fn list_all_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn E
     let mut objects: Vec<ListBucketResult> = Vec::new();
     find_and_append_objects(prefix, &mut objects)?;
     Ok(objects)
+}
+
+#[derive(Debug, Clone)]
+struct ArtifactNode {
+    name: String,
+    children: Vec<Box<ArtifactNode>>,
+}
+
+impl ArtifactNode {
+    fn new(name: &str) -> ArtifactNode {
+        ArtifactNode {
+            name: name.to_string(),
+            children: Vec::<Box<ArtifactNode>>::new(),
+        }
+    }
+
+    fn find_child(&mut self, name: &str) -> Option<&mut ArtifactNode> {
+        for c in self.children.iter_mut() {
+            if c.name == name {
+                return Some(c);
+            }
+        }
+        None
+    }
+
+    fn add_child<T>(&mut self, leaf: T) -> &mut Self
+    where
+        T: Into<ArtifactNode>,
+    {
+        self.children.push(Box::new(leaf.into()));
+        self
+    }
+}
+
+fn build_artifact_tree(node: &mut ArtifactNode, parts: &Vec<&str>, depth: usize) {
+    if depth >= parts.len() {
+        // Finished building the tree
+        return;
+    }
+    let part = &parts[depth];
+    let mut child_node = match node.find_child(&part) {
+        Some(dir) => dir,
+        None => {
+            // Create a new child node and return it
+            let new_node = ArtifactNode::new(&part);
+            node.add_child(new_node);
+            node.find_child(&part).unwrap()
+        }
+    };
+    build_artifact_tree(&mut child_node, parts, depth + 1);
+}
+
+fn print_file(file_name: &str, depth: u32) {
+    if depth == 0 {
+        println!("{}", file_name);
+    } else {
+        println!(
+            "{:indent$}{} {}",
+            "",
+            "└──",
+            file_name,
+            indent = (depth * 4) as usize
+        );
+    }
+}
+
+fn print_artifact_tree(node: &ArtifactNode, depth: u32) {
+    print_file(&node.name, depth);
+    for child in &node.children {
+        print_artifact_tree(&child, depth + 1);
+    }
+}
+
+fn convert_to_artifact_tree(prefix: &str, objects: Vec<ListBucketResult>) -> ArtifactNode {
+    let mut root = ArtifactNode::new(prefix);
+    for object in objects {
+        for file in object.contents {
+            let file_path = file.key;
+            let file_path_from_prefix = file_path.strip_prefix(prefix).unwrap();
+            let parts: Vec<&str> = file_path_from_prefix.split("/").collect();
+            build_artifact_tree(&mut root, &parts, 0);
+        }
+    }
+    return root;
+}
+
+pub fn print_tree_list(prefix: &str, objects: Vec<ListBucketResult>) {
+    let root = convert_to_artifact_tree(prefix, objects);
+    print_artifact_tree(&root, 0);
+}
+
+pub fn print_flat_list(prefix: &str, objects: Vec<ListBucketResult>) {
+    for object in objects {
+        for file in object.contents {
+            let file_path = file.key;
+            let file_path_from_prefix = file_path.strip_prefix(prefix).unwrap();
+            println!("{}", file_path_from_prefix);
+        }
+    }
 }
 
 async fn find_commit_hash_in(
