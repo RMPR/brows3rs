@@ -52,7 +52,6 @@ fn print_files(prefix: &str, format: &ListFormat) -> Result<(), Box<dyn Error>> 
     Ok(())
 }
 
-// #[tokio::main]
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let artifact_path = Path::new(&args.artifact_path);

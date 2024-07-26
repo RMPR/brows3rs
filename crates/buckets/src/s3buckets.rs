@@ -222,6 +222,16 @@ pub async fn download_artifacts(
     Ok(())
 }
 
+fn move_from_temp_to_dest(
+    temporary_folder: &Path,
+    destination_folder: &str,
+) -> Result<(), Box<dyn Error>> {
+    match std::fs::rename(temporary_folder, destination_folder) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.into()),
+    }
+}
+
 pub fn download_artifacts_sync(
     artifact_path: &Path,
     destination_path: &str,
@@ -249,5 +259,5 @@ pub fn download_artifacts_sync(
             }
         }
     }
-    Ok(())
+    return move_from_temp_to_dest(temporary_folder.as_path(), destination_path);
 }
