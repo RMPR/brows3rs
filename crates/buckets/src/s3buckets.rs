@@ -174,23 +174,26 @@ async fn download_artifact(
 
 fn move_from_temp_to_dest(
     temporary_folder: &Path,
-    destination_folder: &str,
+    destination_folder: &Path,
 ) -> Result<(), Box<dyn Error>> {
     // If destination folder exists, throw exception
-    if Path::new(destination_folder).exists() {
+    if destination_folder.exists() {
         let error_message = format!(
             "Destination folder {} already exists and not updated. Artifacts are downloaded in {}",
-            destination_folder,
+            destination_folder.display(),
             temporary_folder.display()
         );
         return Err(error_message.into());
     }
 
+    // create destination folder parent(s)
+    std::fs::create_dir_all(destination_folder.parent().unwrap())?;
+
     match std::fs::rename(temporary_folder, destination_folder) {
         Ok(_) => {
             println!(
                 "Artifacts successfully downloaded to {}",
-                destination_folder
+                destination_folder.display()
             );
             Ok(())
         }
@@ -200,10 +203,10 @@ fn move_from_temp_to_dest(
 
 pub fn download_artifacts_sync(
     artifact_path_str: &str,
-    destination_path: &str,
+    destination_path_str: &str,
 ) -> Result<(), Box<dyn Error>> {
     let mut temporary_folder = std::env::temp_dir();
-    temporary_folder.push(destination_path);
+    temporary_folder.push(destination_path_str);
     let artifact_path = Path::new(artifact_path_str);
 
     let objects = list_all_objects(&artifact_path_str)?;
@@ -224,5 +227,6 @@ pub fn download_artifacts_sync(
             }
         }
     }
+    let destination_path = Path::new(destination_path_str);
     return move_from_temp_to_dest(temporary_folder.as_path(), destination_path);
 }
