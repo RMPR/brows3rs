@@ -82,7 +82,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             download_artifacts_sync(&artifact_path, &destination_folder)?;
         }
         Commands::List { format } => {
-            println!("Files in {}:", &artifact_path);
             let format = match format {
                 Some(f) => f,
                 None => ListFormat::Flat,
