@@ -169,56 +169,6 @@ async fn download_artifact(
     );
     let mut buffer = File::create(&destination)?;
     buffer.write_all(&response.as_slice())?;
-    println!("Downloaded artifact to {}", &destination);
-    Ok(())
-}
-
-// fn is_folder(object: &ListBucketResult) -> bool {
-//     object.key.ends_with("/")
-// }
-
-fn is_artifact_a_folder(artifact_path: &str) -> bool {
-    // TODO: This enforces that if downloading folder, it must end with "/"
-    // Update logic to support downloading folders without "/" at end
-    return artifact_path.ends_with("/");
-}
-
-// fn add_artifact_if_folder(
-//     artifact_path: &str,
-//     object: &ListBucketResult,
-//     artifact_paths: &mut Vec<String>,
-// )
-// {
-//     if is_folder(object) {
-//         artifact_paths.push(format!("{}/{}", artifact_path, object.key));
-//     }
-// }
-
-pub async fn download_artifacts(
-    artifact_path: &str,
-    destination_path: &str,
-) -> Result<(), Box<dyn Error>> {
-    let mut temporary_folder = std::env::temp_dir();
-    temporary_folder.push(destination_path);
-    if !is_artifact_a_folder(artifact_path) {
-        return download_artifact(artifact_path, &temporary_folder).await;
-    }
-
-    // TODO: Implement logic to visit all folders
-
-    // let mut folders_to_visit: Vec<ListBucketResult> = Vec::new();
-
-    // // TODO: Check that having or not having "/" at end of artifact_path works
-    let bucket_results = list_objects(artifact_path).await?;
-    // Create a directory, returns `io::Result<()>`
-    std::fs::create_dir(temporary_folder.as_path())?;
-    for bucket_result in bucket_results {
-        for artifact_object in bucket_result.contents {
-            // add_artifact_if_folder(artifact_path, &artifact_path, &mut to_visit_folders);
-            download_artifact(&artifact_object.key, &temporary_folder).await?;
-        }
-    }
-    // Implement the logic for recursive folder downloading
     Ok(())
 }
 
@@ -237,7 +187,13 @@ fn move_from_temp_to_dest(
     }
 
     match std::fs::rename(temporary_folder, destination_folder) {
-        Ok(_) => Ok(()),
+        Ok(_) => {
+            println!(
+                "Artifacts successfully downloaded to {}",
+                destination_folder
+            );
+            Ok(())
+        }
         Err(e) => Err(e.into()),
     }
 }
@@ -255,7 +211,6 @@ pub fn download_artifacts_sync(
         match object.prefix {
             None => continue,
             Some(prefix) => {
-                println!("{:?}", prefix);
                 let object_prefix_path = Path::new(&prefix);
                 let artifact_folder = object_prefix_path.strip_prefix(artifact_path)?;
                 let folder_to_create = temporary_folder.join(artifact_folder);
