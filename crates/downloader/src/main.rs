@@ -58,12 +58,20 @@ fn print_files(prefix: &str, format: ListFormat) -> Result<(), Box<dyn Error>> {
 }
 
 fn strip_artifact_path_url(url: &str) -> String {
-    let se_cluster = "http://se-cluster-2.localdomain:32000/se-ci-artifacts/";
-    let se_ci_storage = "http://se-ci-storage:9000/minio/se-ci-artifacts/";
-    if url.starts_with(se_cluster) {
-        return url.replace(se_cluster, "");
-    } else if url.starts_with(se_ci_storage) {
-        return url.replace(se_ci_storage, "");
+    const SE_CLUSTER: &'static str = "http://se-cluster-2";
+    const SE_CLUSTER_ENDPOINT: &'static str = ":32000/se-ci-artifacts/";
+    const SE_CI_STORAGE: &'static str = "http://se-ci-storage";
+    const SE_CI_STORAGE_ENDPOINT: &'static str = ":9000/minio/se-ci-artifacts/";
+
+    let urls_to_strip = [
+        format!("{}{}", SE_CLUSTER, SE_CLUSTER_ENDPOINT),
+        format!("{}.localdomain{}", SE_CLUSTER, SE_CLUSTER_ENDPOINT),
+        format!("{}{}", SE_CI_STORAGE, SE_CI_STORAGE_ENDPOINT),
+        format!("{}.localdomain{}", SE_CI_STORAGE, SE_CI_STORAGE_ENDPOINT),
+    ];
+    let found_url = urls_to_strip.iter().find(|u| url.starts_with(*u));
+    if let Some(url_to_strip) = found_url {
+        return url.replace(url_to_strip, "");
     }
     url.to_string()
 }
