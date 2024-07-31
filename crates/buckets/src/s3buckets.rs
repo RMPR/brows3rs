@@ -4,6 +4,7 @@ use s3::bucket::Bucket;
 use s3::creds::Credentials;
 use s3::region::Region;
 use s3::serde_types::ListBucketResult;
+use s3::serde_types::Object;
 
 use std::error::Error;
 use std::fs::File;
@@ -176,6 +177,14 @@ fn move_from_temp_to_dest(
     temporary_folder: &Path,
     destination_folder: &Path,
 ) -> Result<(), Box<dyn Error>> {
+    if temporary_folder == destination_folder {
+        println!(
+            "Artifacts successfully downloaded to {}",
+            destination_folder.display()
+        );
+        return Ok(());
+    }
+
     // If destination folder exists, throw exception
     if destination_folder.exists() {
         let error_message = format!(
@@ -209,6 +218,7 @@ pub fn download_artifacts_sync(
     temporary_folder.push(destination_path_str);
     let artifact_path = Path::new(artifact_path_str);
 
+    let rt = Runtime::new().unwrap();
     let objects = list_all_objects(&artifact_path_str)?;
     for object in objects {
         match object.prefix {
@@ -218,12 +228,15 @@ pub fn download_artifacts_sync(
                 let artifact_folder = object_prefix_path.strip_prefix(artifact_path)?;
                 let folder_to_create = temporary_folder.join(artifact_folder);
                 std::fs::create_dir_all(&folder_to_create)?;
-                for artifact_object in object.contents {
-                    println!("Downloading file: {:?}", artifact_object.key);
-                    Runtime::new()
-                        .unwrap()
-                        .block_on(download_artifact(&artifact_object.key, &folder_to_create))?;
-                }
+
+                object
+                    .contents
+                    .iter()
+                    .map(|artifact_object: &Object| {
+                        println!("Downloading file: {:?}", &artifact_object.key);
+                        rt.block_on(download_artifact(&artifact_object.key, &folder_to_create))
+                    })
+                    .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
             }
         }
     }
