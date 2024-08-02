@@ -13,9 +13,18 @@ cargo build
 
 ## Usage
 
-Check the top level `Cargo.toml` file for available binary crates (`[[bin]]` sections). Run the built binary with `--help`.
+Check the top level `Cargo.toml` file for available binary crates (`[[bin]]` sections). Run the built/downloaded binary with `--help`.
+Before running the binary, make sure you have the following environment variables set:
 
-To download all artifacts in given URL, from repo root:
+```sh
+S3_HOSTNAME
+
+S3_ACCESSKEY
+
+S3_SECRETKEY
+
+S3_BUCKET
+```
 
 ```sh
 ./target/debug/downloader <URL>
