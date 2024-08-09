@@ -9,6 +9,8 @@ use s3::serde_types::Object;
 use fs_more::directory::DestinationDirectoryRule;
 use fs_more::directory::DirectoryMoveOptions;
 
+use rayon::prelude::*;
+
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
@@ -176,6 +178,13 @@ async fn download_artifact(
     Ok(())
 }
 
+async fn download_artifact_panic(artifact_file: &str, destination_folder: &PathBuf) -> () {
+    match download_artifact(artifact_file, destination_folder).await {
+        Ok(_) => (),
+        Err(e) => panic!("Failed to download artifact: {}", e),
+    }
+}
+
 fn move_from_temp_to_dest(
     temporary_folder: &Path,
     destination_folder: &Path,
@@ -241,12 +250,12 @@ pub fn download_artifacts_sync(
 
                 object
                     .contents
-                    .iter()
+                    .par_iter()
                     .map(|artifact_object: &Object| {
                         println!("Downloading file: {:?}", &artifact_object.key);
-                        rt.block_on(download_artifact(&artifact_object.key, &folder_to_create))
+                        rt.block_on(download_artifact_panic(&artifact_object.key, &folder_to_create))
                     })
-                    .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
+                    .collect::<Vec<_>>();
             }
         }
     }
