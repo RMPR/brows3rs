@@ -6,6 +6,9 @@ use s3::region::Region;
 use s3::serde_types::ListBucketResult;
 use s3::serde_types::Object;
 
+use fs_more::directory::DestinationDirectoryRule;
+use fs_more::directory::DirectoryMoveOptions;
+
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
@@ -198,7 +201,14 @@ fn move_from_temp_to_dest(
     // create destination folder parent(s)
     std::fs::create_dir_all(destination_folder.parent().unwrap())?;
 
-    match std::fs::rename(temporary_folder, destination_folder) {
+    match fs_more::directory::move_directory(
+        temporary_folder,
+        destination_folder,
+        DirectoryMoveOptions {
+            destination_directory_rule: DestinationDirectoryRule::AllowEmpty,
+            ..Default::default()
+        },
+    ) {
         Ok(_) => {
             println!(
                 "Artifacts successfully downloaded to {}",

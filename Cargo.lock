@@ -206,6 +206,7 @@ dependencies = [
 name = "buckets"
 version = "0.1.0"
 dependencies = [
+ "fs-more",
  "futures",
  "rust-s3",
  "tokio",
@@ -373,6 +374,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dunce"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -431,6 +438,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e13624c2627564efccf4934284bdd98cbaa14e79b0b5a141218e507b3a823456"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fs-more"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f05d4be3f05db4f25c0b9648ae5a235bffbcf5690f891b538cf6c38a99406c8"
+dependencies = [
+ "dunce",
+ "thiserror",
 ]
 
 [[package]]
