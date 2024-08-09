@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+fs-more = "0.7.1"
 futures = "0.3.30"
 rust-s3 = "0.33.0"
 tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
