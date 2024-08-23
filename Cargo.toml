@@ -13,11 +13,16 @@ name = "browser"
 path = "crates/downloader/src/main.rs"
 name = "downloader"
 
+[[bin]]
+path = "crates/find_artifact_with_commit/src/main.rs"
+name = "find_artifact_with_commit"
+
 [workspace]
 members = [
     "crates/browser",
     "crates/buckets", 
-    "crates/downloader",
+    "crates/downloader", 
+    "crates/find_artifact_with_commit",
 ]
 
 [dependencies]
