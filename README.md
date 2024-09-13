@@ -44,7 +44,19 @@ To list in a UNIX style `tree` view:
 
 ## Tasks
 
-09 August, 2024
+13th September, 2024
 
-- Start the work on web interface
+- Add a API project
+- Make http server in API project
+- Add a frontend project that compiles to web assembly (dioxus has file browser example)
+- Make requests from frontend to http server.
 - Add some unit tests
+
+## Notes
+
+The rust-s3 library that we use depends on openssl-sys crate, which cannot be compiled to wasm32
+target. Additionally, many features in tokio cannot be compiled to wasm32 target, so even the
+official amazon s3 sdk for rust does not compile to wasm32 target. Given these limitations, the
+future path is to separate out the project into two parts:
+- api: Compiled for x86-64 target and uses tokio, s3 libraries etc. This will make a http server.
+- frontend: Compiled for wasm32 target and makes requests to the API.
