@@ -2,7 +2,6 @@ name: Rust
 
 on:
   push:
-    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -12,26 +11,34 @@ env:
 jobs:
   check-formatting:
       runs-on: ubuntu-latest
-
       steps:
       - uses: actions/checkout@v4
+      # TODO: Create matrix for --manifest-path once we have frontend crates
       - name: Check format
-        run: cargo fmt --check
-        
-  ubuntu-build:
-
-    runs-on: ubuntu-latest
-
+        run: cargo fmt --manifest-path api/Cargo.toml --check
+  
+  debug-build:
+    strategy:
+      matrix:
+        include:
+        # TODO: Add wasm target when we have frontend crates
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-      
-  windows-build:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose --manifest-path api/Cargo.toml --target ${{ matrix.target }}
 
-    runs-on: windows-latest
-
+  check-releasable:
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
+      - uses: actions/checkout@v4
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          dry-run: true
+          manifest-path: api/Cargo.toml
+          bin: downloader
+          target: x86_64-unknown-linux-gnu
