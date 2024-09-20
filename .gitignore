@@ -4,10 +4,4 @@ minio_test/include
 minio_test/lib
 minio_test/lib64
 minio_test/pyvenv.cfg
-
-
-# Added by cargo
-#
-# already existing elements were commented out
-
-#/target
+**/target
