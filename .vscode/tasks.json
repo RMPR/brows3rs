@@ -9,6 +9,8 @@
             "command": "cargo",
             "args": [
                 "fmt",
+                "--manifest-path",
+                "${workspaceFolder}/api/Cargo.toml"
             ],
             "problemMatcher": [],
             "presentation": {
@@ -21,7 +23,9 @@
             "type": "shell",
             "command": "cargo",
             "args": [
-                "build"
+                "build",
+                "--manifest-path",
+                "${workspaceFolder}/api/Cargo.toml"
             ],
             "problemMatcher": [],
             "presentation": {
@@ -34,7 +38,9 @@
             "type": "shell",
             "command": "cargo",
             "args": [
-                "check"
+                "check",
+                "--manifest-path",
+                "${workspaceFolder}/api/Cargo.toml"
             ],
             "problemMatcher": [],
             "presentation": {
@@ -49,7 +55,9 @@
             "args": [
                 "fix",
                 "--allow-dirty",
-                "--allow-staged"
+                "--allow-staged",
+                "--manifest-path",
+                "${workspaceFolder}/api/Cargo.toml"
             ],
             "problemMatcher": [],
             "presentation": {
