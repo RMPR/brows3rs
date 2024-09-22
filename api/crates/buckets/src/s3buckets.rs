@@ -190,12 +190,10 @@ fn move_from_temp_to_dest(
 
     // If destination folder exists, throw exception
     if destination_folder.exists() {
-        let error_message = format!(
-            "Destination folder {} already exists and not updated. Artifacts are downloaded in {}",
-            destination_folder.display(),
-            temporary_folder.display()
+        println!(
+            "Destination folder {} already exists and will be overwritten.",
+            destination_folder.display()
         );
-        return Err(error_message.into());
     }
 
     // create destination folder parent(s)
@@ -205,7 +203,10 @@ fn move_from_temp_to_dest(
         temporary_folder,
         destination_folder,
         DirectoryMoveOptions {
-            destination_directory_rule: DestinationDirectoryRule::AllowEmpty,
+            destination_directory_rule: DestinationDirectoryRule::AllowNonEmpty {
+                colliding_file_behaviour: fs_more::file::CollidingFileBehaviour::Overwrite,
+                colliding_subdirectory_behaviour: fs_more::directory::CollidingSubDirectoryBehaviour::Continue,
+            },
             ..Default::default()
         },
     ) {
