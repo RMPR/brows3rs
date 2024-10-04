@@ -205,7 +205,8 @@ fn move_from_temp_to_dest(
         DirectoryMoveOptions {
             destination_directory_rule: DestinationDirectoryRule::AllowNonEmpty {
                 colliding_file_behaviour: fs_more::file::CollidingFileBehaviour::Overwrite,
-                colliding_subdirectory_behaviour: fs_more::directory::CollidingSubDirectoryBehaviour::Continue,
+                colliding_subdirectory_behaviour:
+                    fs_more::directory::CollidingSubDirectoryBehaviour::Continue,
             },
             ..Default::default()
         },

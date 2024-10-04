@@ -23,10 +23,12 @@ members = [
     "crates/buckets", 
     "crates/downloader", 
     "crates/find_artifact_with_commit",
+    "crates/browser_api",
 ]
 
 [dependencies]
 buckets = { version = "0.1.0", path = "crates/buckets" }
+browser_api = { version = "0.1.0", path = "crates/browser_api" }
 clap = { version = "4.5.4", features = ["derive"] }
 futures = "0.3.30"
 rust-s3 = "0.33.0"

@@ -46,8 +46,10 @@ To list in a UNIX style `tree` view:
 
 13th September, 2024
 
-- Add a API project
 - Make http server in API project
+-- Make following endpoints:
+--- LIST <artifact_path> - returns a list of all artifacts
+--- DOWNLOAD <artifact_path> - downloads all artifacts
 - Add a frontend project that compiles to web assembly (dioxus has file browser example)
 - Make requests from frontend to http server.
 - Add some unit tests
