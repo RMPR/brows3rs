@@ -42,6 +42,20 @@ To list in a UNIX style `tree` view:
 ./target/debug/downloader <URL> list tree
 ```
 
+### Frontend
+
+Building the frontend is done with:
+
+```
+cargo build --target wasm32-unknown-unknown
+```
+
+To run the browser with the results:
+
+```
+trunk serve
+```
+
 ## Tasks
 
 13th September, 2024
@@ -50,7 +64,6 @@ To list in a UNIX style `tree` view:
 -- Make following endpoints:
 --- LIST <artifact_path> - returns a list of all artifacts
 --- DOWNLOAD <artifact_path> - downloads all artifacts
-- Add a frontend project that compiles to web assembly (dioxus has file browser example)
 - Make requests from frontend to http server.
 - Add some unit tests
 

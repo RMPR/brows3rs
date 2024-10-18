@@ -5,3 +5,4 @@ minio_test/lib
 minio_test/lib64
 minio_test/pyvenv.cfg
 **/target
+frontend/dist
