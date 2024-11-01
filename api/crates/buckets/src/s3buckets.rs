@@ -41,12 +41,16 @@ fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
     Ok(bucket)
 }
 
-pub async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
+async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
     let bucket = get_bucket()?;
     let objects = bucket
         .list(String::from(prefix), Some("/".to_owned()))
         .await?;
     return Ok(objects);
+}
+
+pub fn list_objects_sync(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
+    Runtime::new().unwrap().block_on(list_objects(prefix))
 }
 
 fn find_and_append_objects(

@@ -14,6 +14,10 @@ path = "crates/downloader/src/main.rs"
 name = "downloader"
 
 [[bin]]
+path = "crates/download_latest/src/main.rs"
+name = "download_latest"
+
+[[bin]]
 path = "crates/find_artifact_with_commit/src/main.rs"
 name = "find_artifact_with_commit"
 
@@ -23,7 +27,8 @@ members = [
     "crates/buckets", 
     "crates/downloader", 
     "crates/find_artifact_with_commit",
-    "crates/browser_api",
+    "crates/browser_api", 
+    "crates/download_latest",
 ]
 
 [dependencies]
