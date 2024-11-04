@@ -49,10 +49,6 @@ async fn list_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Err
     return Ok(objects);
 }
 
-pub fn list_objects_sync(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn Error>> {
-    Runtime::new().unwrap().block_on(list_objects(prefix))
-}
-
 fn find_and_append_objects(
     prefix: &str,
     mut output_objects: &mut Vec<ListBucketResult>,
@@ -78,6 +74,30 @@ pub fn list_all_objects(prefix: &str) -> Result<Vec<ListBucketResult>, Box<dyn E
     let mut objects: Vec<ListBucketResult> = Vec::new();
     find_and_append_objects(prefix, &mut objects)?;
     Ok(objects)
+}
+
+
+pub fn list_folders_in_prefix(
+    prefix: &str
+) -> Result<Vec<String>, Box<dyn Error>> {
+    let mut output: Vec<String> = Vec::new();
+    let objects = Runtime::new().unwrap().block_on(list_objects(prefix));
+    match objects {
+        Err(e) => return Err(e),
+        Ok(objects) => {
+            for object in objects {
+                match object.common_prefixes {
+                    None => continue,
+                    Some(common_prefixes) => {
+                        for common_prefix in common_prefixes {
+                            output.push(common_prefix.prefix);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(output)
 }
 
 fn convert_to_artifact_tree(prefix: &str, objects: Vec<ListBucketResult>) -> ArtifactNode {

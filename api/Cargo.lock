@@ -393,8 +393,6 @@ version = "0.1.0"
 dependencies = [
  "buckets",
  "clap",
- "serde",
- "tokio",
 ]
 
 [[package]]

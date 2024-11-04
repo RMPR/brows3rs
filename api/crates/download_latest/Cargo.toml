@@ -1,0 +1,8 @@
+[package]
+name = "download_latest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+buckets = { version = "0.1.0", path = "../buckets" }
+clap = { version = "4.5.4", features = ["derive"] }
