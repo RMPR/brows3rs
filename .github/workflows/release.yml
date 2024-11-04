@@ -32,7 +32,7 @@ jobs:
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           manifest-path: api/Cargo.toml
-          bin: downloader
+          bin: downloader, download_latest
           target: ${{ matrix.target }}
           # (required) GitHub token for uploading assets to GitHub Releases.
           token: ${{ secrets.GITHUB_TOKEN }}
