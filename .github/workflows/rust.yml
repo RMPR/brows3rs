@@ -41,4 +41,5 @@ jobs:
           dry-run: true
           manifest-path: api/Cargo.toml
           bin: downloader, download_latest
+          archive: app-$target
           target: x86_64-unknown-linux-gnu

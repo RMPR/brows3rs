@@ -34,5 +34,6 @@ jobs:
           manifest-path: api/Cargo.toml
           bin: downloader, download_latest
           target: ${{ matrix.target }}
+          archive: app-$target
           # (required) GitHub token for uploading assets to GitHub Releases.
           token: ${{ secrets.GITHUB_TOKEN }}
