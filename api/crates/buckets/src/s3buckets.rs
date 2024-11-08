@@ -1,5 +1,7 @@
 use crate::artifact_node::{build_artifact_tree, print_artifact_tree, ArtifactNode};
 
+use cli::{read_credentials, S3Config};
+
 use s3::bucket::Bucket;
 use s3::creds::Credentials;
 use s3::region::Region;
@@ -17,14 +19,12 @@ use std::path::{Path, PathBuf};
 use tokio::runtime::Runtime;
 
 fn get_bucket() -> Result<Bucket, Box<dyn Error>> {
-    let bucket_name =
-        std::env::var("S3_BUCKET").expect("Failed to get the environment variable S3_BUCKET");
-    let access_key =
-        std::env::var("S3_ACCESSKEY").expect("Failed to get the environment variable S3_ACCESSKEY");
-    let secret_key =
-        std::env::var("S3_SECRETKEY").expect("Failed to get the environment variable S3_SECRETKEY");
-    let hostname =
-        std::env::var("S3_HOSTNAME").expect("Failed to get the environment variable S3_HOSTNAME");
+    let S3Config {
+        hostname,
+        access_key,
+        secret_key,
+        bucket_name,
+    } = read_credentials();
     let region = Region::Custom {
         region: "".to_owned(),
         endpoint: format!("http://{}", hostname),

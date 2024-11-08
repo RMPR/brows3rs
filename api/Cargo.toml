@@ -28,7 +28,7 @@ members = [
     "crates/downloader", 
     "crates/find_artifact_with_commit",
     "crates/browser_api", 
-    "crates/download_latest",
+    "crates/download_latest", "crates/cli",
 ]
 
 [dependencies]
