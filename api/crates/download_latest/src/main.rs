@@ -52,7 +52,7 @@ fn artifact_path(
 ) -> Result<String, Box<dyn Error>> {
     let os = os_name()?;
     match os.as_str() {
-        "linux" => {
+        "ubuntu-20.04" => {
             return Ok(format!(
                 "{}{}/{}/Release/",
                 latest_commit_hash, os, architecture,
