@@ -6,7 +6,7 @@ use clap::{Parser, ValueEnum};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-#[derive(ValueEnum, Clone, Default, Debug)]
+#[derive(ValueEnum, Clone, Default, Debug, PartialEq)]
 enum Architecture {
     #[default]
     Amd64,
@@ -46,6 +46,29 @@ fn os_name() -> Result<String, Box<dyn Error>> {
     }
 }
 
+fn artifact_path(
+    architecture: Architecture,
+    latest_commit_hash: &str,
+) -> Result<String, Box<dyn Error>> {
+    let os = os_name()?;
+    match os.as_str() {
+        "linux" => {
+            return Ok(format!(
+                "{}{}/{}/Release/",
+                latest_commit_hash, os, architecture,
+            ));
+        }
+        "windows" => {
+            if architecture != Architecture::Amd64 {
+                return Err("Unsupported architecture for windows".into());
+            }
+            // Windows artifacts don't have architecture in the path
+            return Ok(format!("{}{}/Installers/", latest_commit_hash, os,));
+        }
+        &_ => Err("Unsupported operating system".into()),
+    }
+}
+
 fn bucket_to_search(branch_name: &str) -> String {
     if branch_name == "master" {
         format!("success/{}/sdk/commit/", branch_name)
@@ -69,11 +92,7 @@ fn latest_artifact(branch_name: &str, architecture: Architecture) -> Result<(), 
     let latest_timestamp = objects.iter().max().unwrap();
     let objects = list_folders_in_prefix(&latest_timestamp)?;
     let latest_commit_hash = objects.iter().max().unwrap();
-    let artifact_platform = os_name()?;
-    let artifacts_to_download = format!(
-        "{}{}/{}/Release/",
-        latest_commit_hash, artifact_platform, architecture
-    );
+    let artifacts_to_download = artifact_path(architecture, latest_commit_hash)?;
     println!("Downloading artifacts from: {}", artifacts_to_download);
     download_artifacts_sync(&artifacts_to_download, "artifacts")?;
     Ok(())
