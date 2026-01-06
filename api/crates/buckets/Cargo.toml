@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 fs-more = "0.7.1"
 futures = "0.3.30"
-rust-s3 = "0.33.0"
+rust-s3 = { version = "0.33.0", default-features = false, features = ["tokio-rustls-tls", "tags", "fail-on-err"] }
 tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
 cli = { version = "0.1.0", path = "../cli" }
