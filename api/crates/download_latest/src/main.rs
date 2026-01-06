@@ -6,7 +6,7 @@ use clap::{Parser, ValueEnum};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-#[derive(ValueEnum, Clone, Default, Debug, PartialEq)]
+#[derive(ValueEnum, Clone, Default, Debug, PartialEq, Copy)]
 enum Architecture {
     #[default]
     Amd64,
@@ -37,10 +37,13 @@ struct Args {
     architecture: Architecture,
 }
 
-fn os_name() -> Result<String, Box<dyn Error>> {
+fn artifacts_os_name(architecture: Architecture) -> Result<String, Box<dyn Error>> {
     let os = std::env::consts::OS;
     match os {
-        "linux" => Ok("ubuntu-20.04".to_string()),
+        "linux" => match architecture {
+            Architecture::Amd64 => Ok("ubuntu-20.04".to_string()),
+            Architecture::Arm64 => Ok("ubuntu-22.04".to_string()),
+        },
         "windows" => Ok("windows".to_string()),
         &_ => Err("Unsupported operating system".into()),
     }
@@ -50,23 +53,21 @@ fn artifact_path(
     architecture: Architecture,
     latest_commit_hash: &str,
 ) -> Result<String, Box<dyn Error>> {
-    let os = os_name()?;
-    match os.as_str() {
-        "ubuntu-20.04" => {
-            return Ok(format!(
-                "{}{}/{}/Release/",
-                latest_commit_hash, os, architecture,
-            ));
-        }
-        "windows" => {
-            if architecture != Architecture::Amd64 {
-                return Err("Unsupported architecture for windows".into());
-            }
-            // Windows artifacts don't have architecture in the path
-            return Ok(format!("{}{}/Installers/", latest_commit_hash, os,));
-        }
-        &_ => Err("Unsupported operating system".into()),
+    let os = artifacts_os_name(architecture)?;
+    if os.starts_with("ubuntu") {
+        return Ok(format!(
+            "{}{}/{}/Release/",
+            latest_commit_hash, os, architecture,
+        ));
     }
+    if os.starts_with("windows") {
+        if architecture != Architecture::Amd64 {
+            return Err("Unsupported architecture for windows".into());
+        }
+        // Windows artifacts don't have architecture in the path
+        return Ok(format!("{}{}/Installers/", latest_commit_hash, os,));
+    }
+    Err("Unsupported operating system".into())
 }
 
 fn bucket_to_search(branch_name: &str) -> String {
