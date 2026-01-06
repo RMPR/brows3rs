@@ -3,32 +3,43 @@ name: Rust
 on:
   push:
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   check-formatting:
-      runs-on: ubuntu-latest
-      steps:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
       # TODO: Create matrix for --manifest-path once we have frontend crates
       - name: Check format
         run: cargo fmt --manifest-path api/Cargo.toml --check
-  
+
   debug-build:
     strategy:
       matrix:
         include:
-        # TODO: Add wasm target when we have frontend crates
+          # TODO: Add wasm target when we have frontend crates
           - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
           - target: x86_64-pc-windows-msvc
             os: windows-latest
     runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+      CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
     steps:
       - uses: actions/checkout@v4
+      - name: Install cross-compilation tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
       - name: Build
         run: cargo build --verbose --manifest-path api/Cargo.toml --target ${{ matrix.target }}
 
@@ -40,6 +51,6 @@ jobs:
         with:
           dry-run: true
           manifest-path: api/Cargo.toml
-          bin: downloader,download_latest
+          bin: downloader,download_latest,find_artifact_with_commit
           archive: app-$target
           target: x86_64-unknown-linux-gnu
