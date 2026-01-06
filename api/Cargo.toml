@@ -24,10 +24,10 @@ name = "find_artifact_with_commit"
 [workspace]
 members = [
     "crates/browser",
-    "crates/buckets", 
-    "crates/downloader", 
+    "crates/buckets",
+    "crates/downloader",
     "crates/find_artifact_with_commit",
-    "crates/browser_api", 
+    "crates/browser_api",
     "crates/download_latest", "crates/cli",
 ]
 
@@ -36,5 +36,5 @@ buckets = { version = "0.1.0", path = "crates/buckets" }
 browser_api = { version = "0.1.0", path = "crates/browser_api" }
 clap = { version = "4.5.4", features = ["derive"] }
 futures = "0.3.30"
-rust-s3 = "0.33.0"
+rust-s3 = { version = "0.33.0", default-features = false, features = ["tokio-rustls-tls", "tags", "fail-on-err"] }
 tokio = {version = "1.36.0", features = ["rt-multi-thread", "macros"]}
