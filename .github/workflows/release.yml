@@ -24,15 +24,25 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-22.04
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-22.04
           - target: x86_64-pc-windows-msvc
             os: windows-latest
     runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+      CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
     steps:
       - uses: actions/checkout@v4
+      - name: Install cross-compilation tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           manifest-path: api/Cargo.toml
-          bin: downloader,download_latest
+          bin: downloader,download_latest,find_artifact_with_commit
           target: ${{ matrix.target }}
           archive: app-$target
           # (required) GitHub token for uploading assets to GitHub Releases.
